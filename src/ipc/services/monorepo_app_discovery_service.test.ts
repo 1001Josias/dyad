@@ -94,9 +94,11 @@ import {
   deriveAppDisplayName,
   discoverAndRegisterMonorepoApps,
   formatFolderNameAsDisplayName,
+  isAppInMonorepoWorkspace,
   isCandidateAppDirectoryName,
   isPathMatchingApp,
   isValidApplicationDirectory,
+  listMonorepoWorkspaceApps,
   monorepoAppDiscoveryService,
   registerMonorepoApp,
 } from "./monorepo_app_discovery_service";
@@ -474,6 +476,91 @@ describe("monorepo_app_discovery_service", () => {
       expect(result.apps).toEqual([]);
       expect(result.registered).toEqual([]);
       expect(result.skipped).toEqual([]);
+    });
+  });
+
+  describe("isAppInMonorepoWorkspace", () => {
+    it("returns true for a direct child directory of appsDirectory", () => {
+      const appsDir = path.join(tempBase, "apps");
+      const financeDir = path.join(appsDir, "finance");
+      fs.mkdirSync(financeDir, { recursive: true });
+
+      expect(isAppInMonorepoWorkspace(financeDir, appsDir)).toBe(true);
+    });
+
+    it("returns false for apps outside appsDirectory", () => {
+      const appsDir = path.join(tempBase, "apps");
+      const outsideDir = path.join(tempBase, "other", "finance");
+      fs.mkdirSync(outsideDir, { recursive: true });
+
+      expect(isAppInMonorepoWorkspace(outsideDir, appsDir)).toBe(false);
+    });
+
+    it("returns false for the appsDirectory itself", () => {
+      const appsDir = path.join(tempBase, "apps");
+      fs.mkdirSync(appsDir, { recursive: true });
+
+      expect(isAppInMonorepoWorkspace(appsDir, appsDir)).toBe(false);
+    });
+
+    it("returns false for nested subdirectories under an app", () => {
+      const appsDir = path.join(tempBase, "apps");
+      const nestedDir = path.join(appsDir, "finance", "nested-pkg");
+      fs.mkdirSync(nestedDir, { recursive: true });
+
+      expect(isAppInMonorepoWorkspace(nestedDir, appsDir)).toBe(false);
+    });
+
+    it("returns false for ignored directories like node_modules", () => {
+      const appsDir = path.join(tempBase, "apps");
+      const nodeModulesDir = path.join(appsDir, "node_modules");
+      fs.mkdirSync(nodeModulesDir, { recursive: true });
+
+      expect(isAppInMonorepoWorkspace(nodeModulesDir, appsDir)).toBe(false);
+    });
+  });
+
+  describe("listMonorepoWorkspaceApps", () => {
+    it("returns isConfigured: false and empty list when unconfigured", async () => {
+      vi.spyOn(settingsModule, "readSettings").mockReturnValue({} as any);
+
+      const result = await listMonorepoWorkspaceApps();
+      expect(result.isConfigured).toBe(false);
+      expect(result.apps).toEqual([]);
+    });
+
+    it("returns only apps belonging to the configured monorepo workspace sorted by name", async () => {
+      const repoDir = path.join(tempBase, "repo");
+      const appsDir = path.join(repoDir, "apps");
+      const financeDir = path.join(appsDir, "finance");
+      const contractsDir = path.join(appsDir, "contracts");
+      const hrDir = path.join(appsDir, "hr");
+      const outsideDir = path.join(tempBase, "standalone-app");
+
+      fs.mkdirSync(financeDir, { recursive: true });
+      fs.mkdirSync(contractsDir, { recursive: true });
+      fs.mkdirSync(hrDir, { recursive: true });
+      fs.mkdirSync(outsideDir, { recursive: true });
+
+      vi.spyOn(settingsModule, "readSettings").mockReturnValue({
+        monorepoRoot: repoDir,
+        appsDirectory: "apps",
+      } as any);
+
+      await registerMonorepoApp({ path: financeDir, name: "Finance" });
+      await registerMonorepoApp({ path: hrDir, name: "HR" });
+      await registerMonorepoApp({ path: contractsDir, name: "Contracts" });
+      await registerMonorepoApp({ path: outsideDir, name: "Standalone App" });
+
+      const result = await monorepoAppDiscoveryService.listWorkspaceApps();
+      expect(result.isConfigured).toBe(true);
+      expect(result.apps).toHaveLength(3);
+      expect(result.apps.map((a) => a.name)).toEqual([
+        "Contracts",
+        "Finance",
+        "HR",
+      ]);
+      expect(result.apps.map((a) => a.name)).not.toContain("Standalone App");
     });
   });
 });

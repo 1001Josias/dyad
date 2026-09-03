@@ -117,6 +117,8 @@ export { monorepoContracts, monorepoClient } from "./monorepo";
 export type {
   DiscoverMonorepoAppsParams,
   DiscoverMonorepoAppsResult,
+  ListMonorepoWorkspaceAppsParams,
+  ListMonorepoWorkspaceAppsResult,
 } from "./monorepo";
 
 // =============================================================================

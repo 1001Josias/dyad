@@ -157,6 +157,45 @@ export function isPathMatchingApp(
   return realRow === realTarget;
 }
 
+export function isAppInMonorepoWorkspace(
+  appPath: string,
+  appsDirectory: string,
+): boolean {
+  try {
+    const realAppsDir = safeRealpath(path.resolve(appsDirectory));
+    const fullAppPath = getDyadAppPath(appPath);
+    const realAppPath = safeRealpath(path.resolve(fullAppPath));
+
+    const parentDir = path.dirname(realAppPath);
+    if (
+      parentDir === realAppsDir ||
+      parentDir.toLowerCase() === realAppsDir.toLowerCase()
+    ) {
+      const baseName = path.basename(realAppPath);
+      return isCandidateAppDirectoryName(baseName);
+    }
+
+    const relative = path.relative(realAppsDir, realAppPath);
+    if (
+      relative === "" ||
+      relative === ".." ||
+      relative.startsWith(`..${path.sep}`) ||
+      relative.startsWith("..\\") ||
+      relative.startsWith("../") ||
+      path.isAbsolute(relative)
+    ) {
+      return false;
+    }
+    return (
+      !relative.includes(path.sep) &&
+      !relative.includes("/") &&
+      !relative.includes("\\")
+    );
+  } catch {
+    return false;
+  }
+}
+
 export interface RegisterMonorepoAppParams {
   path: string;
   name?: string;
@@ -322,11 +361,56 @@ export async function discoverAndRegisterMonorepoApps(
   });
 }
 
+export interface ListMonorepoWorkspaceAppsResult {
+  isConfigured: boolean;
+  apps: (typeof apps.$inferSelect)[];
+}
+
+export async function listMonorepoWorkspaceApps(
+  options?: MonorepoDiscoveryOptions,
+): Promise<ListMonorepoWorkspaceAppsResult> {
+  let resolvedAppsDir: string | null = null;
+
+  if (options?.appsDirectory) {
+    resolvedAppsDir = path.resolve(options.appsDirectory);
+  } else {
+    const settings = options?.settings ?? readSettings();
+    const config = parseManagedMonorepoWorkspaceConfig(settings);
+    if (config) {
+      resolvedAppsDir = resolveManagedMonorepoAppsDirectory(settings);
+    } else {
+      resolvedAppsDir = getManagedMonorepoAppsDirectory();
+    }
+  }
+
+  if (!resolvedAppsDir) {
+    return { isConfigured: false, apps: [] };
+  }
+
+  const existingApps = await db.query.apps.findMany();
+  const workspaceApps = existingApps.filter((app) =>
+    isAppInMonorepoWorkspace(app.path, resolvedAppsDir!),
+  );
+
+  workspaceApps.sort((a, b) => a.name.localeCompare(b.name));
+
+  return {
+    isConfigured: true,
+    apps: workspaceApps,
+  };
+}
+
 export class MonorepoAppDiscoveryService {
   async discover(
     options?: MonorepoDiscoveryOptions,
   ): Promise<MonorepoDiscoveryResult> {
     return discoverAndRegisterMonorepoApps(options);
+  }
+
+  async listWorkspaceApps(
+    options?: MonorepoDiscoveryOptions,
+  ): Promise<ListMonorepoWorkspaceAppsResult> {
+    return listMonorepoWorkspaceApps(options);
   }
 }
 

@@ -8,7 +8,11 @@ import {
   setupHandlerTestHarness,
 } from "@/testing/handler_test_harness";
 import { registerMonorepoHandlers } from "./monorepo_handlers";
-import type { DiscoverMonorepoAppsResult } from "../types/monorepo";
+import type {
+  DiscoverMonorepoAppsResult,
+  ListMonorepoWorkspaceAppsResult,
+} from "../types/monorepo";
+import { registerMonorepoApp } from "../services/monorepo_app_discovery_service";
 
 describe("registerMonorepoHandlers", () => {
   let harness: HandlerTestHarness;
@@ -84,5 +88,41 @@ describe("registerMonorepoHandlers", () => {
     expect(names).toEqual(["Contracts", "Finance", "HR"]);
     expect(result.registered).toHaveLength(3);
     expect(result.skipped).toHaveLength(0);
+  });
+
+  it("handles monorepo:list-workspace-apps when unconfigured", async () => {
+    const result = await harness.invokeHandler<ListMonorepoWorkspaceAppsResult>(
+      "monorepo:list-workspace-apps",
+      undefined,
+    );
+
+    expect(result.isConfigured).toBe(false);
+    expect(result.apps).toEqual([]);
+  });
+
+  it("handles monorepo:list-workspace-apps returning only apps in the configured workspace", async () => {
+    const appsDir = path.join(tempBase, "apps");
+    const outsideDir = path.join(tempBase, "outside-app");
+    const financeDir = path.join(appsDir, "finance");
+    const contractsDir = path.join(appsDir, "contracts");
+
+    fs.mkdirSync(financeDir, { recursive: true });
+    fs.mkdirSync(contractsDir, { recursive: true });
+    fs.mkdirSync(outsideDir, { recursive: true });
+
+    // Register apps
+    await registerMonorepoApp({ path: financeDir, name: "Finance" });
+    await registerMonorepoApp({ path: contractsDir, name: "Contracts" });
+    await registerMonorepoApp({ path: outsideDir, name: "Outside App" });
+
+    const result = await harness.invokeHandler<ListMonorepoWorkspaceAppsResult>(
+      "monorepo:list-workspace-apps",
+      { appsDirectory: appsDir },
+    );
+
+    expect(result.isConfigured).toBe(true);
+    expect(result.apps).toHaveLength(2);
+    expect(result.apps.map((a) => a.name)).toEqual(["Contracts", "Finance"]);
+    expect(result.apps.map((a) => a.name)).not.toContain("Outside App");
   });
 });

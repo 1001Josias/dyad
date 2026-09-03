@@ -11,5 +11,13 @@ export function registerMonorepoHandlers() {
     return monorepoAppDiscoveryService.discover(params);
   });
 
+  createTypedHandler(
+    monorepoContracts.listWorkspaceApps,
+    async (_event, params) => {
+      logger.info("Listing monorepo workspace apps", params);
+      return monorepoAppDiscoveryService.listWorkspaceApps(params);
+    },
+  );
+
   logger.debug("Registered monorepo IPC handlers");
 }
