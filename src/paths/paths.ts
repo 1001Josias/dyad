@@ -76,7 +76,11 @@ export function getDyadAppsBaseDirectory(): string {
  * not change the existing Create App, Import App, Git, or App.path semantics.
  */
 export function getManagedMonorepoAppsDirectory(): string | null {
-  return resolveManagedMonorepoAppsDirectory(readSettings());
+  try {
+    return resolveManagedMonorepoAppsDirectory(readSettings());
+  } catch {
+    return null;
+  }
 }
 
 /**
