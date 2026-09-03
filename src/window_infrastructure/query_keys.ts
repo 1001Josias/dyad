@@ -7,7 +7,7 @@ export function queryKeysForInvalidationScope(
 ): readonly QueryKey[] {
   switch (scope.family) {
     case "apps":
-      return [queryKeys.apps.all];
+      return [queryKeys.apps.all, queryKeys.monorepo.all];
     case "chats":
       return [queryKeys.chats.all];
     case "app-collections":
