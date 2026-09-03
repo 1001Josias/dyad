@@ -3,6 +3,7 @@ import os from "node:os";
 import fs from "node:fs";
 import { IS_TEST_BUILD } from "../ipc/utils/test_utils";
 import { readSettings } from "../main/settings";
+import { resolveManagedMonorepoAppsDirectory } from "./managed_monorepo_workspace";
 
 // Cached result of getDyadAppsBaseDirectory
 let cachedBaseDirectory: string | null = null;
@@ -65,6 +66,17 @@ export function getDyadAppsBaseDirectory(): string {
 
   cachedBaseDirectory = appsPath;
   return cachedBaseDirectory;
+}
+
+/**
+ * Gets the apps directory managed inside the configured monorepo workspace.
+ *
+ * This is intentionally separate from getDyadAppsBaseDirectory(): the managed
+ * monorepo configuration is a foundation for monorepo-specific flows and must
+ * not change the existing Create App, Import App, Git, or App.path semantics.
+ */
+export function getManagedMonorepoAppsDirectory(): string | null {
+  return resolveManagedMonorepoAppsDirectory(readSettings());
 }
 
 /**
