@@ -27,7 +27,7 @@ function isEscapingRoot(root: string, target: string): boolean {
  * If the path or a subsegment does not exist yet, resolves symlinks for the
  * closest existing ancestor and appends the remaining relative path.
  */
-function safeRealpath(targetPath: string): string {
+export function safeRealpath(targetPath: string): string {
   try {
     return fs.realpathSync(targetPath);
   } catch (error: unknown) {
