@@ -21,6 +21,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { MonorepoAppSelector } from "@/components/monorepo";
 import { ChatTabs } from "@/components/chat/ChatTabs";
 import { selectedChatIdAtom } from "@/atoms/chatAtoms";
 import { useQueryClient } from "@tanstack/react-query";
@@ -128,6 +129,7 @@ export const TitleBar = () => {
             </TooltipTrigger>
             <TooltipContent>{displayText}</TooltipContent>
           </Tooltip>
+          <MonorepoAppSelector variant="popover" />
           {isDyadPro && <DyadProButton isDyadProEnabled={isDyadProEnabled} />}
         </div>
 

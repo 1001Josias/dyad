@@ -19,6 +19,7 @@ import { useOpenApp } from "@/hooks/useOpenApp";
 import { useAppCollections } from "@/hooks/useAppCollections";
 import { useSettings } from "@/hooks/useSettings";
 import { useMemo, useState } from "react";
+import { MonorepoAppSelector } from "./monorepo";
 import { AppSearchDialog } from "./AppSearchDialog";
 import { AppItem } from "./appItem";
 export function AppList({ show }: { show?: boolean }) {
@@ -99,6 +100,11 @@ export function AppList({ show }: { show?: boolean }) {
       >
         <SidebarGroupContent>
           <div className="flex flex-col space-y-3">
+            <MonorepoAppSelector
+              variant="inline"
+              onSelectApp={handleAppClick}
+              onNewApp={handleNewApp}
+            />
             <div className="mx-2 flex items-center gap-2">
               <Button
                 onClick={handleNewApp}
