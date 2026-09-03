@@ -113,6 +113,11 @@ export {
   distributedMachineContracts,
   distributedMachineEvents,
 } from "./distributed_machines";
+export { monorepoContracts, monorepoClient } from "./monorepo";
+export type {
+  DiscoverMonorepoAppsParams,
+  DiscoverMonorepoAppsResult,
+} from "./monorepo";
 
 // =============================================================================
 // Client Exports
@@ -576,6 +581,7 @@ import {
   distributedMachineClient,
   distributedMachineEventClient,
 } from "./distributed_machines";
+import { monorepoClient } from "./monorepo";
 
 /**
  * Unified IPC client with all domains organized by namespace.
@@ -648,6 +654,7 @@ export const ipc = {
   windowInfrastructure: windowInfrastructureClient,
   distributedMachine: distributedMachineClient,
   imageGeneration: imageGenerationClient,
+  monorepo: monorepoClient,
   previewView: {
     ...previewViewClient,
     setBounds: previewViewSendClient.setBounds,
