@@ -555,6 +555,8 @@ const BaseUserSettingsFields = {
   nodeRuntimePreference: z.enum(["system", "managed"]).optional(),
   disablePreviewNodeAutoInstall: z.boolean().optional(),
   customAppsFolder: z.string().optional().nullable(),
+  monorepoRoot: z.string().optional().nullable(),
+  appsDirectory: z.string().optional().nullable(),
   isRunning: z.boolean().optional(),
   lastKnownPerformance: LastKnownPerformanceSchema.optional(),
   enableContextCompaction: z.boolean().optional(),
