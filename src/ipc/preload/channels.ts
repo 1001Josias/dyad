@@ -80,6 +80,7 @@ import {
   distributedMachineContracts,
   distributedMachineEvents,
 } from "../types/distributed_machines";
+import { monorepoContracts } from "../types/monorepo";
 
 // =============================================================================
 // Invoke Channels (derived from all contracts)
@@ -152,6 +153,7 @@ export const VALID_INVOKE_CHANNELS = [
   ...getInvokeChannels(userInputContracts),
   ...getInvokeChannels(windowInfrastructureContracts),
   ...getInvokeChannels(distributedMachineContracts),
+  ...getInvokeChannels(monorepoContracts),
   ...getInvokeChannels(imageGenerationContracts),
   ...getInvokeChannels(previewViewContracts),
 

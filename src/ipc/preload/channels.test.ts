@@ -10,6 +10,7 @@ import {
   coolifySetupContracts,
   coolifySetupEvents,
 } from "../types/coolify_setup";
+import { monorepoContracts } from "../types/monorepo";
 import {
   VALID_INVOKE_CHANNELS,
   VALID_RECEIVE_CHANNELS,
@@ -64,6 +65,14 @@ describe("coolify-setup preload channels", () => {
     }
     for (const event of Object.values(coolifySetupEvents)) {
       expect(VALID_RECEIVE_CHANNELS).toContain(event.channel);
+    }
+  });
+});
+
+describe("monorepo preload channels", () => {
+  it("allows every monorepo invoke contract", () => {
+    for (const contract of Object.values(monorepoContracts)) {
+      expect(VALID_INVOKE_CHANNELS).toContain(contract.channel);
     }
   });
 });
